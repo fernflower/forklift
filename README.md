@@ -280,3 +280,17 @@ ansible:
       - 'user_playbooks/vim.yml'
       - 'user_playbooks/zsh.yml'
 ```
+
+### Using forklift to boot a foreman vm with foreman_leapp plugin
+
+#### Openstack as vagrant provider
+
+Prerequisites:
+1. Vagrant openstack provider plugin installed on host. For more information click [here](https://github.com/ggiamarchi/vagrant-openstack-provider).
+2. `openrc` file for your tenant.
+3. Created openstack keypair `vagrant`
+
+To boot a foreman server with foreman_leapp you need to source the openstack tenant credentials file and then provision the vm:
+```
+source openrc
+VAGRANT_DEFAULT_PROVIDER=openstack vagrant up openstack-katello-devel```

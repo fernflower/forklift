@@ -50,6 +50,27 @@ module Forklift
           define_vm config, box
         end
 
+        config.ssh.private_key_path = './vagrant_priv_key'
+        config.vm.provider :openstack do |os, override|
+          os.openstack_auth_url = ENV['OS_AUTH_URL']
+          os.username           = ENV['OS_USERNAME']
+          os.password           = ENV['OS_PASSWORD']
+          os.identity_api_version  = '3'
+          os.user_domain_name      = ENV['OS_USER_DOMAIN_NAME']
+          # NOTE(ivasilev) Not specified in openrc
+          os.project_domain_name   = 'redhat.com'
+          os.project_name          = ENV['OS_PROJECT_NAME']
+          os.flavor                = 'ci.m3.medium'
+          os.image                 = 'rhel-7.9-server-x86_64-latest'
+          os.networks              = ['provider_net_cci_2']
+          os.security_groups       = ['oamg_secgroup_allow_all']
+          os.server_create_timeout = 600
+          os.server_name           = 'vagrant-leapp-'+Time.now.strftime("%Y%m%d%H%M%S")
+          os.keypair_name          = 'vagrant'
+          # NOTE(ivasilev) That's a remedy to a possible No host IP was given to the Vagrant core NFS helper issue.
+          override.nfs.functional  = false
+        end
+
         config.vm.provider :libvirt do |domain|
           domain.memory = @settings['memory']
           domain.cpus   = @settings['cpus']

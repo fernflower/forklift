@@ -10,6 +10,20 @@
   set_fact:
     foreman_installer_options_joined: "{{ foreman_installer_options | join(' ') }} {{ foreman_installer_options_internal_use_only | join(' ') }}"
 
+- name: 'Workaround facter\hostname'
+  shell: "hostnamectl set-hostname $(/opt/puppetlabs/bin/facter fqdn)"
+  become: true
+
+- name: 'Generate /etc/hosts entry'
+  shell: "echo $(ifconfig eth0 | grep inet | head -n1 | awk '{print $2}') $(hostname -f)"
+  register: etchostsline
+
+- name: 'Workaround etc/hosts'
+  lineinfile:
+    path: /etc/hosts
+    insertbefore: BOF
+    line: "{{ etchostsline.stdout }}"
+
 - name: 'Run installer'
   shell: >
       {{ foreman_installer_command }} {{ (foreman_installer_verbose|bool) | ternary("-v", "") }}
@@ -17,6 +31,7 @@
       {{ (foreman_installer_disable_system_checks|bool) | ternary("--disable-system-checks", "") }}
       {{ foreman_installer_scenario_flag }} {{ foreman_installer_scenario }}
       {{ foreman_installer_options_joined }}
+      --no-enable-foreman-proxy-plugin-pulp
   when: not foreman_installer_skip_installer
   tags:
     - installation
