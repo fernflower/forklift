@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - katello_leapp_devel
+    - hammer_devel
+    - hammer_leapp
+  vars:
+    os_compute_resource_name: openstack-oamg
+    os_username: "{{ lookup('env', 'OS_USERNAME') }}"
+    os_password: "{{ lookup('env', 'OS_PASSWORD') }}"
+    os_auth_url: "{{ lookup('env', 'OS_AUTH_URL') }}"
+    os_project_name: "{{ lookup('env', 'OS_PROJECT_NAME') }}"
+    os_project_domain_name: "{{ lookup('env', 'OS_PROJECT_DOMAIN_NAME')}}"

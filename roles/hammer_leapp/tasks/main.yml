@@ -1,0 +1,58 @@
+---
+- name: 'Install hammer stuff'
+  shell: "gem install {{ item.gem }}"
+  args:
+    executable: /bin/bash
+    chdir: "/root/{{ item.dirname }}"
+  with_items:
+    - {'gem': 'hammer_cli', 'dirname': 'hammer-cli'}
+    - {'gem': 'hammer_cli_foreman_remote_execution', 'dirname': 'hammer_cli_foreman_remote_execution'}
+    - {'gem': 'hammer_cli_foreman', 'dirname': 'hammer-cli-foreman'}
+  become: true
+
+- name: 'Create hammer log dir'
+  file:
+    path: "/var/log/hammer"
+    state: directory
+  become: true
+
+- name: 'Workaround change server to localhost in config'
+  lineinfile:
+    path: ~/.hammer/cli.modules.d/foreman.yml
+    regexp: '  :host: https://centos7-katello-devel:443'
+    line: '  :host: http://localhost'
+  become: true
+
+- name: 'Workaround: rerun install hammer stuff with bundle install'
+  shell: bash -lc "bundle install"
+  args:
+    chdir: "/root/hammer-cli-foreman"
+  become: true
+
+- name: 'Create openstack compute resource'
+  shell: >
+       bash -lc
+       "hammer compute-resource create --name {{os_compute_resource_name}}
+       --provider openstack --user {{os_username}} --password {{os_password}}
+       --url {{os_auth_url}} --tenant {{os_project_name}} --project-domain-name {{os_project_domain_name}}"
+  args:
+    executable: /bin/bash
+  become: true
+
+- name: 'Workaround get fip'
+  shell: "echo $(ifconfig eth0 | grep inet | head -n1 | awk '{print $2}')"
+  register: fip
+
+- name: Register smart proxy in foreman
+  shell: bash -lc "hammer proxy create --name 'smart_proxy_rex' --url 'http://{{ fip.stdout }}:8000'"
+  args:
+    executable: /bin/bash
+
+- name: Make foreman server resolvable by ip when using foreman_url macro
+  shell: bash -lc "{{item}}"
+  args:
+    executable: /bin/bash
+  with_items:
+    #- hammer settings set --name unattended_url --value http://{{fip.stdout}}:5000
+    #- hammer settings set --name foreman_url --value http://{{fip.stdout}}:5000
+    - hammer settings set --name remote_execution_connect_by_ip --value True

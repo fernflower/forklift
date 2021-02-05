@@ -5,20 +5,7 @@ openstack-katello-devel-leapp:
   hostname: 'vagrant-katello-devel-leapp'
   openstack_flavor: 'ci.m1.large.small.disk'
   ansible:
-    playbook: 'playbooks/katello_devel.yml'
-    group: 'devel'
-    variables:
-      ssh_forward_agent: true
-      foreman_devel_github_push_ssh: True
-      katello_devel_github_username: fernflower
-
-openstack-katello-devel:
-  image_name: 'CentOS-7-x86_64-GenericCloud-released-latest'
-  username: 'centos'
-  hostname: 'vagrant-katello-devel'
-  openstack_flavor: 'ci.m1.large.small.disk'
-  ansible:
-    playbook: 'playbooks/katello_devel.yml'
+    playbook: 'playbooks/katello_leapp_devel.yml'
     group: 'devel'
     variables:
       ssh_forward_agent: true
@@ -35,37 +22,3 @@ centos7-katello-devel:
       ssh_forward_agent: true
       foreman_devel_github_push_ssh: True
       katello_devel_github_username: fernflower
-
-katello-remote-execution:
-  box: centos7-katello-nightly
-  installer: --enable-foreman-remote-execution
-centos7-proxy-devel:
-    box: centos7
-    ansible:
-      playbook: 'playbooks/foreman_proxy_content_dev.yml'
-      group: 'foreman-proxy-content'
-      server: 'centos7-katello-devel'
-
-openstack-katello-remote-execution:
-  image_name: 'CentOS-7-x86_64-GenericCloud-released-latest'
-  username: 'centos'
-  hostname: 'vagrant-foreman-rex'
-  openstack_flavor: 'ci.m1.large.small.disk'
-  sync_type: 'disabled'
-  ansible:
-    playbook: 'playbooks/katello_devel.yml'
-    group: 'devel'
-    variables:
-      ssh_forward_agent: true
-      foreman_devel_github_push_ssh: True
-      katello_devel_github_username: fernflower
-
-katello-remote-execution:
-  box: centos7-katello-nightly
-  installer: --enable-foreman-remote-execution
-centos7-proxy-devel:
-    box: centos7
-    ansible:
-      playbook: 'playbooks/foreman_proxy_content_dev.yml'
-      group: 'foreman-proxy-content'
-      server: 'centos7-katello-devel'

@@ -24,6 +24,11 @@
     insertbefore: BOF
     line: "{{ etchostsline.stdout }}"
 
+- name: 'Install additional foreman_leapp system dependencies'
+  yum:
+    name: qpid-proton-c-devel
+    state: present
+
 - name: 'Run installer'
   shell: >
       {{ foreman_installer_command }} {{ (foreman_installer_verbose|bool) | ternary("-v", "") }}
@@ -31,7 +36,29 @@
       {{ (foreman_installer_disable_system_checks|bool) | ternary("--disable-system-checks", "") }}
       {{ foreman_installer_scenario_flag }} {{ foreman_installer_scenario }}
       {{ foreman_installer_options_joined }}
-      --no-enable-foreman-proxy-plugin-pulp
   when: not foreman_installer_skip_installer
   tags:
     - installation
+
+- name: 'Workaround webpack (no dev server)'
+  lineinfile:
+    path: /home/vagrant/foreman/config/settings.yaml
+    regexp: ':webpack_dev_server: true'
+    line: ':webpack_dev_server: false'
+  become: true
+
+- name: 'Workaround: compile assets'
+  shell: bash -lc 'bundle exec rake webpack:compile'
+  args:
+    chdir: "/home/vagrant/foreman"
+
+- name: 'Install screen'
+  yum:
+    name: screen
+    state: present
+  become: true
+
+- name: 'Start foreman in screen'
+  shell: screen -S foreman -Ldm bash -lc "bundle exec rails s; sleep 2"
+  args:
+    chdir: "/home/vagrant/foreman"

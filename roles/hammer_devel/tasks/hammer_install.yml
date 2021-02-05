@@ -51,4 +51,8 @@
   yum: name=gcc-c++ state=present
 
 - name: 'Install gems'
-  bundler: chdir=~/hammer-cli-foreman state=present
+  shell: bash -lc 'bundle install'
+  args:
+    chdir: ~/hammer-cli-foreman
+  become: true
+  become_user: root
